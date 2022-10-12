@@ -117,7 +117,7 @@ const sendMessagetoDiscord = async () => {
         ]);
 
     const channel = channels.cache.get(channleId);
-    if (channel?.isText()) {
+    if (channel?.isTextBased()) {
         channel.send({ embeds: [finalMessage] });
     }
 };
