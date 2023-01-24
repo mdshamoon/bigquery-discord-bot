@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 const { BigQuery } = require("@google-cloud/bigquery");
 
 export const bigqueryBot = () => {
+    console.log("wow")
     dotenv.config();
 
     const client = new DiscordJS.Client({
