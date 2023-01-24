@@ -3,17 +3,13 @@ import dotenv from "dotenv";
 const { BigQuery } = require("@google-cloud/bigquery");
 
 export const bigqueryBot = async () => {
-    console.log("wow");
     dotenv.config();
-
-    console.log("wow1");
 
     const client = new DiscordJS.Client({
         intents: ["Guilds", "GuildMessages"],
     });
 
     const sendMessagetoDiscord = async () => {
-        console.log(`before bigquery`);
         const bigquery = new BigQuery({
             projectId: process.env.PROJECT_ID,
             credentials: {
@@ -22,9 +18,6 @@ export const bigqueryBot = async () => {
                     process.env.GCP_PRIVATE_KEY?.split("\\n").join("\n"),
             },
         });
-
-        console.log(`after bigquery`);
-        // Queries the U.S. given names dataset for the state of Texas.
 
         const query =
             "SELECT * FROM `tides-saas-309509.917302307943.stats_all` where period = 'day' and inserted_at > current_date() LIMIT 100";
@@ -36,10 +29,9 @@ export const bigqueryBot = async () => {
             location: "US",
         };
 
-        console.log(`Job  starting.`);
         // Run the query as a job
         const [job] = await bigquery.createQueryJob(options);
-        // console.log(job, job[0]);
+
         console.log(`Job ${job.id} started.`);
 
         // Wait for the query to finish
@@ -119,15 +111,7 @@ export const bigqueryBot = async () => {
             channel.send({ embeds: [finalMessage] });
         }
     };
-    console.log("wow2");
 
-    client.on("ready", async () => {
-        console.log("ho jaa ready");
-    });
-
-    console.log("before login is ready");
     await client.login(process.env.BOT_TOKEN);
-
-    console.log("This is ready");
     await sendMessagetoDiscord();
 };
