@@ -2,7 +2,7 @@ import DiscordJS, { EmbedBuilder } from "discord.js";
 import dotenv from "dotenv";
 const { BigQuery } = require("@google-cloud/bigquery");
 
-export const bigqueryBot = async () => {
+export const bigqueryBot = () => {
     console.log("wow");
     dotenv.config();
 
@@ -112,6 +112,8 @@ export const bigqueryBot = async () => {
             channel.send({ embeds: [finalMessage] });
         }
     };
+
+    client.on("ready", async () => {});
 
     await client.login(process.env.BOT_TOKEN);
 
