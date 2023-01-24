@@ -10,7 +10,7 @@ const myHandler: Handler = async (
     event: HandlerEvent,
     context: HandlerContext
 ) => {
-    console.log("Received event:", event);
+    console.log("Received event:");
     bigqueryBot();
 
     return {

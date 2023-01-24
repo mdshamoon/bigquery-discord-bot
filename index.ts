@@ -109,6 +109,7 @@ export const bigqueryBot = () => {
     };
 
     client.on("ready", async () => {
+        console.log("This is ready")
         sendMessagetoDiscord();
     });
 
