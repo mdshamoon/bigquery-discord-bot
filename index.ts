@@ -16,7 +16,11 @@ export const bigqueryBot = async () => {
         console.log(`before bigquery`);
         const bigquery = new BigQuery({
             projectId: process.env.PROJECT_ID,
-            keyFilename: "./google-credentials.json",
+            credentials: {
+                client_email: process.env.GCP_CLIENT_EMAIL,
+                private_key:
+                    process.env.GCP_PRIVATE_KEY?.split("\\n").join("\n"),
+            },
         });
 
         console.log(`after bigquery`);
