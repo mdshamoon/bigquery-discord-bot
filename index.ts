@@ -38,7 +38,8 @@ export const bigqueryBot = async () => {
 
         console.log(`Job  starting.`);
         // Run the query as a job
-        const [job] = await bigquery.createQueryJob(options);
+        const job = await bigquery.createQueryJob(options);
+        console.log(job, job[0]);
         console.log(`Job ${job.id} started.`);
 
         // Wait for the query to finish
