@@ -10,7 +10,7 @@ export const bigqueryBot = async () => {
         intents: ["Guilds", "GuildMessages"],
     });
 
-    const sendMessagetoDiscord = async () => {
+    const getBigqueryRows = async () => {
         const bigquery = new BigQuery({
             projectId: process.env.PROJECT_ID,
             credentials: {
@@ -38,8 +38,10 @@ export const bigqueryBot = async () => {
         // Wait for the query to finish
         const [rows] = await job.getQueryResults();
 
-        // Print the results
+        return rows;
+    };
 
+    const buildMessage = (rows: any) => {
         let totalContacts = 0;
         let totalMessages = 0;
 
@@ -66,19 +68,6 @@ export const bigqueryBot = async () => {
                     organizationNames + row.organization_name + "\n";
             }
         });
-
-        const guildId = process.env.GUILD_ID || "";
-        const channleId = process.env.CHANNEL_ID || "";
-
-        const guild = client.guilds.cache.get(guildId);
-
-        let channels;
-
-        if (guild) {
-            channels = guild.channels;
-        } else {
-            channels = client.channels;
-        }
 
         const finalMessage = new EmbedBuilder()
             .setColor("#0099ff")
@@ -107,21 +96,25 @@ export const bigqueryBot = async () => {
                 },
             ]);
 
+        return finalMessage;
+    };
+
+    const getChart = async (rows: any, element: string) => {
+        rows.sort((a: any, b: any) => b[element] - a[element]);
         const chart = new QuickChart();
-        chart.setVersion("3");
         chart
             .setConfig({
                 type: "bar",
                 data: {
                     labels: rows
-                        .filter((row: any) => row.messages > 0)
+                        .filter((row: any) => row[element] > 0)
                         .map((row: any) => row.organization_name),
                     datasets: [
                         {
                             label: "Messages",
                             data: rows
-                                .filter((row: any) => row.messages > 0)
-                                .map((row: any) => row.messages),
+                                .filter((row: any) => row[element] > 0)
+                                .map((row: any) => row[element]),
                             backgroundColor: "#129656",
                         },
                     ],
@@ -144,11 +137,44 @@ export const bigqueryBot = async () => {
             .setHeight(1100);
 
         const url = await chart.getShortUrl();
-        const channel = channels.cache.get(channleId);
 
-        if (channel?.isTextBased()) {
+        return url;
+    };
+
+    const sendMessagetoDiscord = async () => {
+        const rows = await getBigqueryRows();
+        // Print the results
+
+        const finalMessage = buildMessage(rows);
+
+        const messagesChart = await getChart(rows, "messages");
+        const activeContactsChart = await getChart(rows, "active");
+        const optinContactsChart = await getChart(rows, "optin");
+        const flowsStartedChart = await getChart(rows, "flows_started");
+
+        const guildId = process.env.GUILD_ID || "";
+        const channelId = process.env.CHANNEL_ID || "";
+        const chartChannelId = process.env.CHART_CHANNEL_ID || "";
+
+        const guild = client.guilds.cache.get(guildId);
+
+        let channels;
+
+        if (guild) {
+            channels = guild.channels;
+        } else {
+            channels = client.channels;
+        }
+
+        const channel = channels.cache.get(channelId);
+        const chartChannel = channels.cache.get(chartChannelId);
+
+        if (channel?.isTextBased() && chartChannel?.isTextBased()) {
             channel.send({ embeds: [finalMessage] });
-            channel.send(url);
+            chartChannel.send(`Messages: ${messagesChart}`);
+            chartChannel.send(`Active contacts: ${activeContactsChart}`);
+            chartChannel.send(`Optin contacts: ${optinContactsChart}`);
+            chartChannel.send(`Flows started: ${flowsStartedChart}`);
         }
     };
 
