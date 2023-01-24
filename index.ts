@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 const { BigQuery } = require("@google-cloud/bigquery");
 
 export const bigqueryBot = () => {
-    console.log("wow")
+    console.log("wow");
     dotenv.config();
 
     const client = new DiscordJS.Client({
@@ -113,12 +113,8 @@ export const bigqueryBot = () => {
         }
     };
 
-    client.on("ready", async () => {
-      
+    client.login(process.env.BOT_TOKEN).then(() => {
+        console.log("This is ready");
+        sendMessagetoDiscord();
     });
-
-    client.login(process.env.BOT_TOKEN);
-
-    console.log("This is ready");
-    sendMessagetoDiscord();
 };
