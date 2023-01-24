@@ -10,10 +10,13 @@ export const bigqueryBot = () => {
     });
 
     const sendMessagetoDiscord = async () => {
+        console.log(`before bigquery`);
         const bigquery = new BigQuery({
             projectId: process.env.PROJECT_ID,
             keyFilename: "./google-credentials.json",
         });
+
+        console.log(`after bigquery`);
         // Queries the U.S. given names dataset for the state of Texas.
 
         const query =
@@ -26,6 +29,7 @@ export const bigqueryBot = () => {
             location: "US",
         };
 
+        console.log(`Job  starting.`);
         // Run the query as a job
         const [job] = await bigquery.createQueryJob(options);
         console.log(`Job ${job.id} started.`);
@@ -109,7 +113,7 @@ export const bigqueryBot = () => {
     };
 
     client.on("ready", async () => {
-        console.log("This is ready")
+        console.log("This is ready");
         sendMessagetoDiscord();
     });
 
