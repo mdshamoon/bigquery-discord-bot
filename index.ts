@@ -2,9 +2,11 @@ import DiscordJS, { EmbedBuilder } from "discord.js";
 import dotenv from "dotenv";
 const { BigQuery } = require("@google-cloud/bigquery");
 
-export const bigqueryBot = () => {
+export const bigqueryBot = async () => {
     console.log("wow");
     dotenv.config();
+
+    console.log("wow1");
 
     const client = new DiscordJS.Client({
         intents: ["Guilds", "GuildMessages"],
@@ -112,9 +114,13 @@ export const bigqueryBot = () => {
             channel.send({ embeds: [finalMessage] });
         }
     };
+    console.log("wow2");
 
-    client.on("ready", async () => {});
+    client.on("ready", async () => {
+        console.log("ho jaa ready");
+    });
 
+    console.log("before login is ready");
     await client.login(process.env.BOT_TOKEN);
 
     console.log("This is ready");

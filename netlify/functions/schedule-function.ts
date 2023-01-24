@@ -11,13 +11,13 @@ const myHandler: Handler = async (
     context: HandlerContext
 ) => {
     console.log("Received event:");
-    bigqueryBot();
+    await bigqueryBot();
 
     return {
         statusCode: 200,
     };
 };
 
-const handler = schedule("@yearly", myHandler);
+const handler = schedule("* * * * *", myHandler);
 
 export { handler };
