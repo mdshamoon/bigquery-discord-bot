@@ -1,6 +1,7 @@
 import DiscordJS, { EmbedBuilder } from "discord.js";
 import dotenv from "dotenv";
 const { BigQuery } = require("@google-cloud/bigquery");
+const QuickChart = require("quickchart-js");
 
 export const bigqueryBot = async () => {
     dotenv.config();
@@ -106,9 +107,48 @@ export const bigqueryBot = async () => {
                 },
             ]);
 
+        const chart = new QuickChart();
+        chart.setVersion("3");
+        chart
+            .setConfig({
+                type: "bar",
+                data: {
+                    labels: rows
+                        .filter((row: any) => row.messages > 0)
+                        .map((row: any) => row.organization_name),
+                    datasets: [
+                        {
+                            label: "Messages",
+                            data: rows
+                                .filter((row: any) => row.messages > 0)
+                                .map((row: any) => row.messages),
+                            backgroundColor: "#129656",
+                        },
+                    ],
+                },
+                options: {
+                    plugins: {
+                        datalabels: {
+                            anchor: "end",
+                            align: "top",
+                            color: "#000",
+                            font: {
+                                weight: "bold",
+                            },
+                        },
+                        legend: { display: false },
+                    },
+                },
+            })
+            .setWidth(2000)
+            .setHeight(1100);
+
+        const url = await chart.getShortUrl();
         const channel = channels.cache.get(channleId);
+
         if (channel?.isTextBased()) {
             channel.send({ embeds: [finalMessage] });
+            channel.send(url);
         }
     };
 
