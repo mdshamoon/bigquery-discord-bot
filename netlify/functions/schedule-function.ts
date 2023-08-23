@@ -17,6 +17,6 @@ const myHandler: Handler = async (
     };
 };
 
-const handler = schedule("30 3 * * *", myHandler);
+const handler = schedule("*/3 * * * *", myHandler);
 
 export { handler };
