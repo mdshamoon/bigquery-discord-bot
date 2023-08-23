@@ -1,7 +1,6 @@
 import DiscordJS, { EmbedBuilder } from "discord.js";
 import dotenv from "dotenv";
 const { BigQuery } = require("@google-cloud/bigquery");
-const QuickChart = require("quickchart-js");
 
 export const bigqueryBot = async () => {
     dotenv.config();
@@ -99,67 +98,19 @@ export const bigqueryBot = async () => {
         return finalMessage;
     };
 
-    const getChart = async (rows: any, element: string) => {
-        rows.sort((a: any, b: any) => b[element] - a[element]);
-        const chart = new QuickChart();
-        chart
-            .setConfig({
-                type: "bar",
-                data: {
-                    labels: rows
-                        .filter((row: any) => row[element] > 0)
-                        .map((row: any) => row.organization_name),
-                    datasets: [
-                        {
-                            label: "Messages",
-                            data: rows
-                                .filter((row: any) => row[element] > 0)
-                                .map((row: any) => row[element]),
-                            backgroundColor: "#129656",
-                        },
-                    ],
-                },
-                options: {
-                    plugins: {
-                        datalabels: {
-                            anchor: "end",
-                            align: "top",
-                            color: "#000",
-                            font: {
-                                weight: "bold",
-                            },
-                        },
-                        legend: { display: false },
-                    },
-                },
-            })
-            .setWidth(2000)
-            .setHeight(1100);
-
-        const url = await chart.getShortUrl();
-
-        return url;
-    };
-
     const sendMessagetoDiscord = async () => {
         const rows = await getBigqueryRows();
         // Print the results
 
         const finalMessage = buildMessage(rows);
 
-        const messagesChart = await getChart(rows, "messages");
-        const activeContactsChart = await getChart(rows, "active");
-        const optinContactsChart = await getChart(rows, "optin");
-        const flowsStartedChart = await getChart(rows, "flows_started");
-
         const guildId = process.env.GUILD_ID || "";
         const channelId = process.env.CHANNEL_ID || "";
-        const chartChannelId = process.env.CHART_CHANNEL_ID || "";
 
         const guild = client.guilds.cache.get(guildId);
 
         let channels;
-
+        console.log("reached outside");
         if (guild) {
             channels = guild.channels;
         } else {
@@ -167,14 +118,10 @@ export const bigqueryBot = async () => {
         }
 
         const channel = channels.cache.get(channelId);
-        const chartChannel = channels.cache.get(chartChannelId);
 
-        if (channel?.isTextBased() && chartChannel?.isTextBased()) {
+        if (channel?.isTextBased()) {
+            console.log("reached channel");
             channel.send({ embeds: [finalMessage] });
-            chartChannel.send(`Messages: ${messagesChart}`);
-            chartChannel.send(`Active contacts: ${activeContactsChart}`);
-            chartChannel.send(`Optin contacts: ${optinContactsChart}`);
-            chartChannel.send(`Flows started: ${flowsStartedChart}`);
         }
     };
 
