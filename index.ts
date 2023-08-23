@@ -110,7 +110,7 @@ export const bigqueryBot = async () => {
         const guild = client.guilds.cache.get(guildId);
 
         let channels;
-        console.log("reached outside");
+
         if (guild) {
             channels = guild.channels;
         } else {
@@ -120,7 +120,6 @@ export const bigqueryBot = async () => {
         const channel = channels.cache.get(channelId);
 
         if (channel?.isTextBased()) {
-            console.log("reached channel");
             channel.send({ embeds: [finalMessage] });
         }
     };
