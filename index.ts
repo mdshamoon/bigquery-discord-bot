@@ -20,7 +20,7 @@ export const bigqueryBot = async () => {
         });
 
         const query =
-            "SELECT * FROM `tides-saas-309509.917302307943.stats_all` where period = 'day' and inserted_at > current_date() LIMIT 100";
+            "SELECT distinct counts FROM `tides-saas-309509.917302307943.trackers_all` where period = 'platform.day' and inserted_at > current_date() LIMIT 100";
 
         // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query
         const options = {
@@ -40,57 +40,38 @@ export const bigqueryBot = async () => {
         return rows;
     };
 
-    const buildMessage = (rows: any) => {
-        let totalContacts = 0;
-        let totalMessages = 0;
+    const buildMessage = (counts: any) => {
+        let statsName = "";
+        let statsValue = "";
 
-        let organizationNames = "";
-        let messages = "";
-        let incomingVsOutgoingMessages = "";
+        const countsObject = JSON.parse(counts);
 
-        rows.sort((a: any, b: any) => b.messages - a.messages);
+        const storeValue = [];
 
-        rows.forEach((row: any) => {
-            totalContacts = totalContacts + row.contacts;
-            totalMessages = totalMessages + row.messages;
+        for (const [key, value] of Object.entries(countsObject)) {
+            storeValue.push({ label: key, value: value });
+        }
 
-            if (row.messages > 0) {
-                incomingVsOutgoingMessages =
-                    incomingVsOutgoingMessages +
-                    row.inbound +
-                    " / " +
-                    row.outbound +
-                    "\n";
+        storeValue.sort((a: any, b: any) => b.value - a.value);
 
-                messages = messages + row.messages + "\n";
-                organizationNames =
-                    organizationNames + row.organization_name + "\n";
-            }
+        storeValue.forEach((value) => {
+            statsName = statsName + value.label + "\n";
+            statsValue = statsValue + value.value + "\n";
         });
 
         const finalMessage = new EmbedBuilder()
-            .setColor("#0099ff")
+            .setColor("#5eba7d")
             .setTitle("Date: " + new Date().toLocaleDateString())
-            .setDescription(
-                "\n\n**Total contacts:** " +
-                    totalContacts +
-                    "\n**Messages yesterday:** " +
-                    totalMessages
-            )
+            .setDescription("Daily platform feature stats")
             .addFields([
                 {
-                    name: "NGO name",
-                    value: organizationNames,
+                    name: "Stats",
+                    value: statsName,
                     inline: true,
                 },
                 {
-                    name: "Messages",
-                    value: messages,
-                    inline: true,
-                },
-                {
-                    name: "Incoming / outgoing",
-                    value: incomingVsOutgoingMessages,
+                    name: "Count",
+                    value: statsValue,
                     inline: true,
                 },
             ]);
@@ -102,7 +83,11 @@ export const bigqueryBot = async () => {
         const rows = await getBigqueryRows();
         // Print the results
 
-        const finalMessage = buildMessage(rows);
+        if (rows.length === 0) {
+            return;
+        }
+
+        const finalMessage = buildMessage(rows[0].counts);
 
         const guildId = process.env.GUILD_ID || "";
         const channelId = process.env.CHANNEL_ID || "";
