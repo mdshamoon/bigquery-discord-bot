@@ -63,8 +63,11 @@ export const bigqueryBot = async () => {
                     "\n";
 
                 messages = messages + row.messages + "\n";
-                organizationNames =
-                    organizationNames + row.organization_name + "\n";
+                const organizationName =
+                    row.organization_name.length > 40
+                        ? row.organization_name.substring(0, 37) + "..."
+                        : row.organization_name;
+                organizationNames = organizationNames + organizationName + "\n";
             }
         });
 
