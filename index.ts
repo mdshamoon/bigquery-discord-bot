@@ -40,72 +40,88 @@ export const bigqueryBot = async () => {
         return rows;
     };
 
-    const buildMessage = (rows: any) => {
+    const chunk: any = (n: number) => (xs: any) =>
+        xs.length <= n ? [[...xs]] : [xs.slice(0, n), ...chunk(n)(xs.slice(n))];
+
+    const buildMessages = (rowsAll: any) => {
         let totalContacts = 0;
         let totalMessages = 0;
 
-        let organizationNames = "";
-        let messages = "";
-        let incomingVsOutgoingMessages = "";
-
-        rows.sort((a: any, b: any) => b.messages - a.messages);
-
-        rows.forEach((row: any) => {
+        rowsAll.forEach((row: any) => {
             totalContacts = totalContacts + row.contacts;
             totalMessages = totalMessages + row.messages;
-
-            if (row.messages > 0) {
-                incomingVsOutgoingMessages =
-                    incomingVsOutgoingMessages +
-                    row.inbound +
-                    " / " +
-                    row.outbound +
-                    "\n";
-
-                messages = messages + row.messages + "\n";
-                const organizationName =
-                    row.organization_name.length > 40
-                        ? row.organization_name.substring(0, 37) + "..."
-                        : row.organization_name;
-                organizationNames = organizationNames + organizationName + "\n";
-            }
         });
 
-        const finalMessage = new EmbedBuilder()
-            .setColor("#0099ff")
-            .setTitle("Date: " + new Date().toLocaleDateString())
-            .setDescription(
-                "\n\n**Total contacts:** " +
-                    totalContacts +
-                    "\n**Messages yesterday:** " +
-                    totalMessages
-            )
-            .addFields([
-                {
-                    name: "NGO name",
-                    value: organizationNames,
-                    inline: true,
-                },
-                {
-                    name: "Messages",
-                    value: messages,
-                    inline: true,
-                },
-                {
-                    name: "Incoming / outgoing",
-                    value: incomingVsOutgoingMessages,
-                    inline: true,
-                },
-            ]);
+        const rowsAllFinal = rowsAll
+            .sort((a: any, b: any) => b.messages - a.messages)
+            .filter((rows: any) => rows.messages > 0);
 
-        return finalMessage;
+        const chunksOf20 = chunk(20)(rowsAllFinal);
+
+        const finalMessages = chunksOf20.map((rows: any, index: number) => {
+            let organizationNames = "";
+            let messages = "";
+            let incomingVsOutgoingMessages = "";
+
+            rows.forEach((row: any) => {
+                if (row.messages > 0) {
+                    incomingVsOutgoingMessages =
+                        incomingVsOutgoingMessages +
+                        row.inbound +
+                        " / " +
+                        row.outbound +
+                        "\n";
+
+                    messages = messages + row.messages + "\n";
+                    const organizationName =
+                        row.organization_name.length > 40
+                            ? row.organization_name.substring(0, 37) + "..."
+                            : row.organization_name;
+                    organizationNames =
+                        organizationNames + organizationName + "\n";
+                }
+            });
+
+            const finalMessage = new EmbedBuilder()
+                .setColor("#0099ff")
+                .setTitle("Date: " + new Date().toLocaleDateString())
+                .setDescription(
+                    index === 0
+                        ? "\n\n**Total contacts:** " +
+                              totalContacts +
+                              "\n**Messages yesterday:** " +
+                              totalMessages
+                        : `Part: ${index + 1}`
+                )
+                .addFields([
+                    {
+                        name: "NGO name",
+                        value: organizationNames,
+                        inline: true,
+                    },
+                    {
+                        name: "Messages",
+                        value: messages,
+                        inline: true,
+                    },
+                    {
+                        name: "Incoming / outgoing",
+                        value: incomingVsOutgoingMessages,
+                        inline: true,
+                    },
+                ]);
+
+            return finalMessage;
+        });
+
+        return finalMessages;
     };
 
     const sendMessagetoDiscord = async () => {
         const rows = await getBigqueryRows();
         // Print the results
 
-        const finalMessage = buildMessage(rows);
+        const finalMessages = buildMessages(rows);
 
         const guildId = process.env.GUILD_ID || "";
         const channelId = process.env.CHANNEL_ID || "";
@@ -123,7 +139,9 @@ export const bigqueryBot = async () => {
         const channel = channels.cache.get(channelId);
 
         if (channel?.isTextBased()) {
-            channel.send({ embeds: [finalMessage] });
+            finalMessages.forEach((finalMessage: any) => {
+                channel.send({ embeds: [finalMessage] });
+            });
         }
     };
 
