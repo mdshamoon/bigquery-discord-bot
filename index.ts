@@ -119,8 +119,8 @@ export const bigqueryBot = async () => {
 
     const sendMessagetoDiscord = async () => {
         const rows = await getBigqueryRows();
+        
         // Print the results
-
         const finalMessages = buildMessages(rows);
 
         const guildId = process.env.GUILD_ID || "";
