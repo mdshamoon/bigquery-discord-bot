@@ -81,8 +81,8 @@ export const bigqueryBot = async () => {
 
     const sendMessagetoDiscord = async () => {
         const rows = await getBigqueryRows();
-        // Print the results
 
+        // Print the results
         if (rows.length === 0) {
             return;
         }
