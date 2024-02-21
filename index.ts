@@ -20,7 +20,7 @@ export const bigqueryBot = async () => {
         });
 
         const query =
-            "SELECT distinct counts FROM `tides-saas-309509.917302307943.trackers_all` where period = 'platform.day' and inserted_at > current_date() LIMIT 100";
+            "SELECT distinct counts FROM `tides-saas-309509.918657048982.trackers_all` where period = 'platform.day' and inserted_at > current_date() LIMIT 100";
 
         // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query
         const options = {
@@ -112,3 +112,5 @@ export const bigqueryBot = async () => {
     await client.login(process.env.BOT_TOKEN);
     await sendMessagetoDiscord();
 };
+
+bigqueryBot();
