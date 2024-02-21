@@ -112,5 +112,3 @@ export const bigqueryBot = async () => {
     await client.login(process.env.BOT_TOKEN);
     await sendMessagetoDiscord();
 };
-
-bigqueryBot();
