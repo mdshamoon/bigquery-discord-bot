@@ -20,7 +20,7 @@ export const bigqueryBot = async () => {
         });
 
         const query =
-            "SELECT * FROM `tides-saas-309509.917302307943.stats_all` where period = 'day' and inserted_at > current_date() LIMIT 100";
+            "SELECT * FROM `tides-saas-309509.918657048982.stats_all` where period = 'day' and inserted_at > current_date() LIMIT 100";
 
         // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query
         const options = {
